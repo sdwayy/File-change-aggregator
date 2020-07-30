@@ -14,8 +14,9 @@
   "author": "Daniil Pugachev",
   "license": "ISC",
   "dependencies": {
+    "@jest/globals": "^26.0.1",
     "commander": "^5.1.0",
-    "@jest/globals": "^26.0.1"
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
     "debug": "^4.1.1",
