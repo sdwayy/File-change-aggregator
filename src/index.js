@@ -1,62 +1,35 @@
-import _ from 'lodash';
-import parseJson from './parsers.js';
+import path from 'path';
+import program from 'commander';
+import {
+  parseFileToJson,
+  getJsonDiff,
+} from './parsers.js';
 
-export default function genDiff(firstFilePath, secondFilePath) {
-  const firstFileData = parseJson(firstFilePath);
-  const secondFileData = parseJson(secondFilePath);
+const packageJson = parseFileToJson(path.resolve('.', 'package.json'));
 
-  if (_.isEqual(firstFileData, secondFileData)) {
-    return JSON.stringify(firstFileData);
+const { version, description } = packageJson;
+
+const genDiff = (firstFilePath, secondFilePath, type = 'json') => {
+  const firstFileData = parseFileToJson(firstFilePath);
+  const secondFileData = parseFileToJson(secondFilePath);
+
+  if (type === 'json') {
+    return getJsonDiff(firstFileData, secondFileData);
   }
+};
 
-  const firstFileDataKeys = Object.keys(firstFileData);
-  const secondFileDataEntries = Object.entries(secondFileData);
-
-  let result = '';
-
-  // Проверяем первый объект на изменения
-  firstFileDataKeys.forEach((key) => {
-    const firstDataValue = firstFileData[key];
-    const secondDataValue = secondFileData[key];
-
-    if (_.has(secondFileData, key)
-        && firstDataValue === secondDataValue) {
-      result += `   ${key}: ${firstDataValue}\n`;
-    } else if (_.has(secondFileData, key)
-              && key !== secondDataValue) {
-      const oldValue = `${key}: ${firstDataValue}`;
-      const newValue = `${key}: ${secondDataValue}`;
-
-      result += ` - ${oldValue}\n + ${newValue}\n`;
-    } else {
-      result += ` - ${key}: ${firstDataValue}\n`;
-    }
+program
+  .description(`${description}`)
+  .version(version)
+  .arguments('<filepath1> <filepath2>')
+  .option('-f, --format [type]', 'output format')
+  .action((filepath1, filepath2) => {
+    console.log(genDiff(filepath1, filepath2));
   });
 
-  // Проверяем содержит ли второй объект новые ключи
-  secondFileDataEntries.forEach(([key, value]) => {
-    if (!_.has(firstFileData, key)) {
-      result += ` + ${key}: ${value}`;
-    }
-  });
+program.parse(process.argv);
 
-  const resultStrings = result.split('\n');
-  const sorteredResultStrings = resultStrings.sort((a, b) => {
-    const firstAletter = a[3];
-    const firstBletter = b[3];
-
-    if (firstAletter > firstBletter) {
-      return 1;
-    }
-
-    if (firstAletter < firstBletter) {
-      return -1;
-    }
-
-    return 0;
-  });
-
-  return `{\n${sorteredResultStrings.join('\n')}\n}`;
-}
-
-// console.log(genDiff('./../example/file1.json', './../example/file2.json'));
+export {
+  genDiff,
+  program,
+};
