@@ -13,9 +13,7 @@ const genDiff = (firstFilePath, secondFilePath, type = 'json') => {
   const firstFileData = parseFileToJson(firstFilePath);
   const secondFileData = parseFileToJson(secondFilePath);
 
-  if (type === 'json') {
-    return getJsonDiff(firstFileData, secondFileData);
-  }
+  return getJsonDiff(firstFileData, secondFileData);
 };
 
 program

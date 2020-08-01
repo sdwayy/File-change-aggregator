@@ -47,8 +47,9 @@ const getJsonDiff = (firstFileData, secondFileData) => {
 
   const resultStrings = result.split('\n');
   const sorteredResultStrings = resultStrings.sort((a, b) => {
-    const firstAletter = a[3];
-    const firstBletter = b[3];
+    const regExp = /(\w\S\D)/;
+    const firstAletter = a.search(regExp);
+    const firstBletter = b.search(regExp);
 
     if (firstAletter > firstBletter) {
       return 1;
@@ -62,7 +63,6 @@ const getJsonDiff = (firstFileData, secondFileData) => {
   });
 
   return `{\n${sorteredResultStrings.join('\n')}\n}`;
-
 };
 
 
