@@ -23,22 +23,22 @@ const getJsonDiff = (firstFileData, secondFileData) => {
 
     if (_.has(secondFileData, key)
         && firstDataValue === secondDataValue) {
-      result += `   ${key}: ${firstDataValue}\n`;
+      result += `    ${key}: ${firstDataValue}\n`;
     } else if (_.has(secondFileData, key)
               && key !== secondDataValue) {
       const oldValue = `${key}: ${firstDataValue}`;
       const newValue = `${key}: ${secondDataValue}`;
 
-      result += ` - ${oldValue}\n + ${newValue}\n`;
+      result += `  - ${oldValue}\n  + ${newValue}\n`;
     } else {
-      result += ` - ${key}: ${firstDataValue}\n`;
+      result += `  - ${key}: ${firstDataValue}\n`;
     }
   });
 
   // Проверяем содержит ли второй объект новые ключи
   secondFileDataEntries.forEach(([key, value]) => {
     if (!_.has(firstFileData, key)) {
-      result += ` + ${key}: ${value}`;
+      result += `  + ${key}: ${value}`;
     }
   });
 

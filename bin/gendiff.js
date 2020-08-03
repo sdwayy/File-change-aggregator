@@ -1,3 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable */
-import { program } from './../src/index.js';
+import { program } from '../src/index.js';
+
+program.parse(process.argv);
