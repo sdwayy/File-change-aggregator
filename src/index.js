@@ -1,17 +1,22 @@
+/* eslint-disable no-underscore-dangle */
+
 import path from 'path';
+import { fileURLToPath } from 'url';
 import program from 'commander';
 import {
   parseFileToJson,
   getJsonDiff,
 } from './parsers.js';
 
-const packageJson = parseFileToJson(path.resolve('.', 'package.json'));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+const packageJson = parseFileToJson(__dirname, '../package.json');
 const { version, description } = packageJson;
 
-const genDiff = (firstFilePath, secondFilePath, type = 'json') => {
-  const firstFileData = parseFileToJson(firstFilePath);
-  const secondFileData = parseFileToJson(secondFilePath);
+const genDiff = (firstFilePath, secondFilePath) => {
+  const firstFileData = parseFileToJson(__dirname, firstFilePath);
+  const secondFileData = parseFileToJson(__dirname, secondFilePath);
 
   return getJsonDiff(firstFileData, secondFileData);
 };

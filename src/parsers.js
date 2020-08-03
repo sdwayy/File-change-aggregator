@@ -1,13 +1,10 @@
+/* eslint-disable no-underscore-dangle */
+
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const parseFileToJson = (inputPath) => JSON.parse(fs.readFileSync(path.resolve(__dirname, inputPath), 'utf8'));
+const parseFileToJson = (base, inputPath) => JSON.parse(fs.readFileSync(path.resolve(base, inputPath), 'utf8'));
 
 const getJsonDiff = (firstFileData, secondFileData) => {
   if (_.isEqual(firstFileData, secondFileData)) {
@@ -46,10 +43,11 @@ const getJsonDiff = (firstFileData, secondFileData) => {
   });
 
   const resultStrings = result.split('\n');
+  console.log('resultStrings: ', resultStrings);
   const sorteredResultStrings = resultStrings.sort((a, b) => {
     const regExp = /(\w\S\D)/;
-    const firstAletter = a.search(regExp);
-    const firstBletter = b.search(regExp);
+    const firstAletter = a[a.search(regExp)];
+    const firstBletter = b[b.search(regExp)];
 
     if (firstAletter > firstBletter) {
       return 1;
@@ -65,8 +63,7 @@ const getJsonDiff = (firstFileData, secondFileData) => {
   return `{\n${sorteredResultStrings.join('\n')}\n}`;
 };
 
-
 export {
   parseFileToJson,
-  getJsonDiff
+  getJsonDiff,
 };
