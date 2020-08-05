@@ -12,6 +12,8 @@ const сorrectResult = `{
 test('genDiff', () => {
   expect(genDiff('../__fixtures__/file1.json', '../__fixtures__/file2.json'))
     .toEqual(сorrectResult);
-  expect(genDiff('../__fixtures__/file1.yml', '../__fixtures__/file2.yml', 'yml'))
+  expect(genDiff('../__fixtures__/file1.yml', '../__fixtures__/file2.yml'))
+    .toEqual(сorrectResult);
+  expect(genDiff('../__fixtures__/file1.ini', '../__fixtures__/file2.ini'))
     .toEqual(сorrectResult);
 });

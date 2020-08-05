@@ -5,6 +5,7 @@ import program from 'commander';
 import {
   parseJsonFile,
   parseYamlFile,
+  parseIniFile,
 } from './parsers.js';
 
 const packageJsonData = parseJsonFile('../package.json');
@@ -16,6 +17,8 @@ function getFileData(filePath) {
   switch (fileType) {
     case '.yml':
       return parseYamlFile(filePath);
+    case '.ini':
+      return parseIniFile(filePath);
     default:
       return parseJsonFile(filePath);
   }
