@@ -4,3 +4,6 @@
 ![Node.js CI](https://github.com/sdwayy/frontend-project-lvl2/workflows/Node.js%20CI/badge.svg)
 ##  Install package:
   `$ sudo npm link`
+
+##  Example:
+  <a href="https://asciinema.org/a/DVxGhEYa4sotmtQ88CbZH309S" target="_blank"><img src="https://asciinema.org/a/DVxGhEYa4sotmtQ88CbZH309S.svg" width=250/></a>
