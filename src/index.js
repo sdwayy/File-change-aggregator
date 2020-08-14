@@ -1,12 +1,13 @@
 /* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
 import path from 'path';
-import program from 'commander';
 import {
   parseJsonFile,
   parseYamlFile,
   parseIniFile,
 } from './parsers.js';
+import stylish from './formatters/stylish.js';
+import plain from './formatters/plain.js';
 
 const packageJsonData = parseJsonFile('../package.json');
 const { version, description } = packageJsonData;
@@ -24,74 +25,76 @@ function getFileData(filePath) {
   }
 }
 
-function genDiff(firstFilePath, secondFilePath) {
-  const firstFileData = getFileData(firstFilePath);
-  const secondFileData = getFileData(secondFilePath);
+function createTree(firstData, secondData) {
+  const keysInFirstData = Object.keys(firstData);
+  const keysInSecondData = Object.keys(secondData);
+  const uniqKeys = _.uniq([...keysInFirstData, ...keysInSecondData]);
 
-  if (_.isEqual(firstFileData, secondFileData)) {
-    return firstFileData;
-  }
+  return uniqKeys.map((key) => {
+    const valueInFirstData = firstData[key];
+    const valueInSecondData = secondData[key];
+    const valuesIsEqual = _.isEqual(valueInFirstData, valueInSecondData);
 
-  const firstFileDataEntries = Object.entries(firstFileData);
-  const secondFileDataEntries = Object.entries(secondFileData);
+    const valueInFirstDataIsObject = _.isObject(valueInFirstData);
+    const valueInSecondDataIsObject = _.isObject(valueInSecondData);
 
-  let result = '';
+    const keyIsIncludedInFirstData = _.has(firstData, key);
+    const keyIsIncludedInSecondData = _.has(secondData, key);
 
-  // Проверяем первый объект на изменения
-  firstFileDataEntries.forEach(([key, value]) => {
-    const secondDataValue = secondFileData[key];
+    if (valueInFirstDataIsObject && valueInSecondDataIsObject) {
+      const type = 'nested';
+      const node = { key, type, children: createTree(valueInFirstData, valueInSecondData) };
 
-    if (_.has(secondFileData, key)
-        && value === secondDataValue) {
-      result += `    ${key}: ${value}\n`;
-    } else if (_.has(secondFileData, key)
-              && key !== secondDataValue) {
-      const oldValue = `${key}: ${value}`;
-      const newValue = `${key}: ${secondDataValue}`;
-
-      result += `  - ${oldValue}\n  + ${newValue}\n`;
-    } else {
-      result += `  - ${key}: ${value}\n`;
+      return node;
     }
+
+    if (valuesIsEqual) {
+      const type = 'unmodifined';
+      const node = { key, type, value: valueInFirstData };
+
+      return node;
+    }
+
+    if (keyIsIncludedInFirstData && keyIsIncludedInSecondData && !valuesIsEqual) {
+      const type = 'updated';
+      const node = {
+        key, type, oldValue: valueInFirstData, newValue: valueInSecondData,
+      };
+
+      return node;
+    }
+
+    if (keyIsIncludedInFirstData && !keyIsIncludedInSecondData) {
+      const type = 'removed';
+      const node = { key, type, value: valueInFirstData };
+
+      return node;
+    }
+
+    if (!keyIsIncludedInFirstData && keyIsIncludedInSecondData) {
+      const type = 'added';
+      const node = { key, type, value: valueInSecondData };
+
+      return node;
+    }
+
+    return {};
   });
-
-  // Проверяем содержит ли второй объект новые ключи
-  secondFileDataEntries.forEach(([key, value]) => {
-    if (!_.has(firstFileData, key)) {
-      result += `  + ${key}: ${value}`;
-    }
-  });
-
-  const resultStrings = result.split('\n');
-  const sorteredResultStrings = resultStrings.sort((a, b) => {
-    const regExp = /(\w\S\D)/;
-    const firstAletter = a[a.search(regExp)];
-    const firstBletter = b[b.search(regExp)];
-
-    if (firstAletter > firstBletter) {
-      return 1;
-    }
-
-    if (firstAletter < firstBletter) {
-      return -1;
-    }
-
-    return 0;
-  });
-
-  return `{\n${sorteredResultStrings.join('\n')}\n}`;
 }
 
-program
-  .description(`${description}`)
-  .version(version)
-  .arguments('<filepath1> <filepath2>')
-  .option('-f, --format [type]', 'output format')
-  .action((filepath1, filepath2) => {
-    console.log(genDiff(filepath1, filepath2));
-  });
+function genDiff(firstFilePath, secondFilePath, formatter = stylish) {
+  const firstFileData = getFileData(firstFilePath);
+  const secondFileData = getFileData(secondFilePath);
+  const tree = createTree(firstFileData, secondFileData);
+
+  return formatter(tree);
+}
 
 export {
   genDiff,
-  program,
+  version,
+  description,
 };
+
+// console.log(genDiff('../__fixtures__/flatBefore1.json', '../__fixtures__/flatBefore2.json', plain));
+console.log(genDiff('../__fixtures__/nestedBefore1.json', '../__fixtures__/nestedBefore2.json', plain));
