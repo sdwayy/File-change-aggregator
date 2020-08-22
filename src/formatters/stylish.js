@@ -1,143 +1,87 @@
 import _ from 'lodash';
 
-const typesList = {
+const baseIndent = 4;
+const indentForTypes = 2;
+
+const typeMark = {
   added: '+',
   removed: '-',
   unmodifined: ' ',
 };
 
-const baseSpaceIndex = 4;
-const spaceIndexForTypes = 2;
+const sortTree = (tree) => tree.sort((a, b) => {
+  const firstKey = a.key;
+  const secondKey = b.key;
 
-function getValue(value, nestingLevel) {
+  if (firstKey > secondKey) {
+    return 1;
+  }
+
+  if (firstKey < secondKey) {
+    return -1;
+  }
+
+  return 0;
+});
+
+const getSpace = (indent) => {
+  if (indent < 1) {
+    return '';
+  }
+  return ' '.repeat(indent);
+};
+
+const formatValue = (value, indent) => {
   if (!_.isObject(value)) {
     return value;
   }
 
-  const spaceIndex = nestingLevel * (baseSpaceIndex * 2);
+  const space = indent === 0
+    ? getSpace(baseIndent + indentForTypes) : getSpace(indent + baseIndent + indentForTypes);
 
-  const getStringObject = (object, spaceForKeys, spaceForCloseBracket) => JSON.stringify(object, null, spaceForKeys).replace(/"/g, '').replace(/}$/, `${spaceForCloseBracket}}`);
+  const spaceForCloseBracket = getSpace(indent + baseIndent - indentForTypes);
 
-  if (nestingLevel === 0) {
-    const spaceForCloseBracket = ' '.repeat(spaceIndex + spaceIndexForTypes);
+  const entries = Object.entries(value);
 
-    const result = getStringObject(value, baseSpaceIndex, spaceForCloseBracket);
+  const result = entries.map(([key, innerValue]) => {
+    if (_.isObject(innerValue)) {
+      return `${space}${key}: ${formatValue(innerValue, indent + baseIndent)}`;
+    }
 
-    return `${result}`;
-  }
+    return `${space}${key}: ${innerValue}`;
+  }).join('\n');
 
-  const spaceForCloseBracket = ' '.repeat(spaceIndex - spaceIndexForTypes);
-  const spaceForKeys = ' '.repeat(spaceIndex + spaceIndexForTypes);
+  return `{\n${result}\n${spaceForCloseBracket}}`;
+};
 
-  const result = getStringObject(value, spaceForKeys, spaceForCloseBracket);
+export default function stylish(astTree) {
+  const inner = (tree, indent = 0) => {
+    const sorteredTree = sortTree(tree);
 
-  return result;
+    const space = getSpace(indent);
+    const spaceForCloseBracket = getSpace(indent - indentForTypes);
+
+    const diffList = sorteredTree.map((node) => {
+      const {
+        key, value, type, oldValue, newValue, children,
+      } = node;
+
+      switch (type) {
+        case 'added':
+        case 'removed':
+        case 'unmodifined':
+          return `${space}${typeMark[type]} ${key}: ${formatValue(value, indent)}`;
+        case 'updated':
+          return `${space}${typeMark.removed} ${key}: ${formatValue(oldValue, indent)}\n${space}${typeMark.added} ${key}: ${formatValue(newValue, indent)}`;
+        case '[complex value]':
+          return `${space}${typeMark.unmodifined} ${key}: ${inner(children, indent + baseIndent)}`;
+        default:
+          throw new Error('unknown type');
+      }
+    });
+
+    return `{\n${diffList.join('\n')}\n${spaceForCloseBracket}}`;
+  };
+
+  return inner(astTree);
 }
-
-export default function stylish(tree, nestingLevel = 0) {
-  let result = '';
-
-  const spaceIndex = nestingLevel * baseSpaceIndex;
-  const space = ' '.repeat(spaceIndex);
-
-  const closeBracketSpaceIndex = spaceIndex > 0
-    ? spaceIndex - spaceIndexForTypes
-    : 0;
-
-  const spaceForCloseBracket = ' '.repeat(closeBracketSpaceIndex);
-
-  const sorteredTree = tree.sort((a, b) => {
-    const firstKey = a.key;
-    const secondKey = b.key;
-
-    if (firstKey > secondKey) {
-      return 1;
-    }
-
-    if (firstKey < secondKey) {
-      return -1;
-    }
-
-    return 0;
-  });
-
-  function inner(node) {
-    const { key, type } = node;
-
-    if (type === 'nested') {
-      const { children } = node;
-
-      result += `${space}${typesList.unmodifined} ${key}: ${stylish(children, nestingLevel + 1)}\n`;
-
-      return;
-    }
-
-    if (type === 'added' || type === 'removed' || type === 'unmodifined') {
-      let { value } = node;
-
-      value = getValue(value, nestingLevel);
-
-      result += `${space}${typesList[type]} ${key}: ${value}\n`;
-    }
-
-    if (type === 'updated') {
-      let { oldValue, newValue } = node;
-
-      newValue = getValue(newValue, nestingLevel);
-      oldValue = getValue(oldValue, nestingLevel);
-
-      result += `${space}${typesList.removed} ${key}: ${oldValue}\n${space}${typesList.added} ${key}: ${newValue}\n`;
-    }
-  }
-
-  sorteredTree.forEach(inner);
-
-  return `{\n${result}${spaceForCloseBracket}}`;
-}
-// export default function stylish(diff, nestingLevel = 1) {
-//   let result = '';
-
-//   const baseGap = 4;
-//   const gapLevelForKeys = (nestingLevel - 1) * baseGap;
-//   const gap = ' '.repeat(gapLevelForKeys);
-//   const gapForResult = nestingLevel > 1 ? ' '.repeat(gapLevelForKeys - 2) : gap;
-
-//   const diffEntries = Object.entries(diff);
-
-//   const sorteredDiff = diffEntries.sort((a, b) => {
-//     const regExp = /(\w\S\D)/;
-
-//     const firstKey = a[0];
-//     const secondKey = b[0];
-
-//     const indexOfFirstLetterInFirstKey = firstKey.search(regExp);
-//     const indexOfFirstLetterInSecondKey = secondKey.search(regExp);
-
-//     const firstString = firstKey.slice(indexOfFirstLetterInFirstKey);
-//     const secondString = secondKey.slice(indexOfFirstLetterInSecondKey);
-
-//     if (firstString > secondString) {
-//       return 1;
-//     }
-
-//     if (firstString < secondString) {
-//       return -1;
-//     }
-
-//     return 0;
-//   });
-
-//   sorteredDiff.forEach((item) => {
-//     const key = item[0];
-//     const value = item[1];
-
-//     if (_.isObject(value)) {
-//       result += `${gap}${key}: ${stylish(value, nestingLevel + 1)}\n`;
-//       return;
-//     }
-
-//     result += `${gap}${key}: ${value}\n`;
-//   });
-
-//   return `{\n${result}${gapForResult}}`;
-// }

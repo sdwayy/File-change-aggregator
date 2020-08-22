@@ -6,8 +6,7 @@ import {
   parseYamlFile,
   parseIniFile,
 } from './parsers.js';
-import stylish from './formatters/stylish.js';
-import plain from './formatters/plain.js';
+import getFormatter from './formatters/index.js';
 
 const packageJsonData = parseJsonFile('../package.json');
 const { version, description } = packageJsonData;
@@ -31,26 +30,26 @@ function createTree(firstData, secondData) {
   const uniqKeys = _.uniq([...keysInFirstData, ...keysInSecondData]);
 
   return uniqKeys.map((key) => {
-    const valueInFirstData = firstData[key];
-    const valueInSecondData = secondData[key];
-    const valuesIsEqual = _.isEqual(valueInFirstData, valueInSecondData);
+    const firstValue = firstData[key];
+    const secondValue = secondData[key];
+    const valuesIsEqual = _.isEqual(firstValue, secondValue);
 
-    const valueInFirstDataIsObject = _.isObject(valueInFirstData);
-    const valueInSecondDataIsObject = _.isObject(valueInSecondData);
+    const firstValueIsObject = _.isObject(firstValue);
+    const secondValueIsObject = _.isObject(secondValue);
 
     const keyIsIncludedInFirstData = _.has(firstData, key);
     const keyIsIncludedInSecondData = _.has(secondData, key);
 
-    if (valueInFirstDataIsObject && valueInSecondDataIsObject) {
-      const type = 'nested';
-      const node = { key, type, children: createTree(valueInFirstData, valueInSecondData) };
+    if (firstValueIsObject && secondValueIsObject) {
+      const type = '[complex value]';
+      const node = { key, type, children: createTree(firstValue, secondValue) };
 
       return node;
     }
 
     if (valuesIsEqual) {
       const type = 'unmodifined';
-      const node = { key, type, value: valueInFirstData };
+      const node = { key, type, value: firstValue };
 
       return node;
     }
@@ -58,7 +57,7 @@ function createTree(firstData, secondData) {
     if (keyIsIncludedInFirstData && keyIsIncludedInSecondData && !valuesIsEqual) {
       const type = 'updated';
       const node = {
-        key, type, oldValue: valueInFirstData, newValue: valueInSecondData,
+        key, type, oldValue: firstValue, newValue: secondValue,
       };
 
       return node;
@@ -66,14 +65,14 @@ function createTree(firstData, secondData) {
 
     if (keyIsIncludedInFirstData && !keyIsIncludedInSecondData) {
       const type = 'removed';
-      const node = { key, type, value: valueInFirstData };
+      const node = { key, type, value: firstValue };
 
       return node;
     }
 
     if (!keyIsIncludedInFirstData && keyIsIncludedInSecondData) {
       const type = 'added';
-      const node = { key, type, value: valueInSecondData };
+      const node = { key, type, value: secondValue };
 
       return node;
     }
@@ -82,10 +81,11 @@ function createTree(firstData, secondData) {
   });
 }
 
-function genDiff(firstFilePath, secondFilePath, formatter = stylish) {
+function genDiff(firstFilePath, secondFilePath, format) {
   const firstFileData = getFileData(firstFilePath);
   const secondFileData = getFileData(secondFilePath);
   const tree = createTree(firstFileData, secondFileData);
+  const formatter = getFormatter(format);
 
   return formatter(tree);
 }
@@ -95,6 +95,3 @@ export {
   version,
   description,
 };
-
-// console.log(genDiff('../__fixtures__/flatBefore1.json', '../__fixtures__/flatBefore2.json', plain));
-console.log(genDiff('../__fixtures__/nestedBefore1.json', '../__fixtures__/nestedBefore2.json', plain));

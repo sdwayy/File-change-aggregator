@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { program } from 'commander';
+import program from 'commander';
 import {
   version,
   description,
@@ -7,12 +7,12 @@ import {
 } from '../src/index.js';
 
 program
-  .description(`${description}`)
+  .description(description)
   .version(version)
   .arguments('<filepath1> <filepath2>')
   .option('-f, --format [type]', 'output format')
   .action((filepath1, filepath2) => {
-    console.log(genDiff(filepath1, filepath2));
+    console.log(genDiff(filepath1, filepath2, program.format));
   });
 
 program.parse(process.argv);
