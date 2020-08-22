@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-const formatValue = (value) => {
+const formateValue = (value) => {
   if (_.isObject(value)) {
     return '[complex value]';
   }
@@ -12,7 +12,7 @@ const formatValue = (value) => {
   return value;
 };
 
-export default function plain(tree) {
+export default function formateToPlain(tree) {
   const diffs = [];
 
   const inner = (node, prefix = '') => {
@@ -24,13 +24,13 @@ export default function plain(tree) {
 
     switch (type) {
       case 'added':
-        diffs.push(`Property '${newPrefix}${key}' was added with value: ${formatValue(value)}`);
+        diffs.push(`Property '${newPrefix}${key}' was added with value: ${formateValue(value)}`);
         break;
       case 'removed':
         diffs.push(`Property '${newPrefix}${key}' was removed`);
         break;
       case 'updated':
-        diffs.push(`Property '${newPrefix}${key}' was updated. From ${formatValue(oldValue)} to ${formatValue(newValue)}`);
+        diffs.push(`Property '${newPrefix}${key}' was updated. From ${formateValue(oldValue)} to ${formateValue(newValue)}`);
         break;
       case '[complex value]':
         children.forEach((child) => inner(child, `${newPrefix}${key}`));

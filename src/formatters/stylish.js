@@ -31,7 +31,7 @@ const getSpace = (indent) => {
   return ' '.repeat(indent);
 };
 
-const formatValue = (value, indent) => {
+const formateValue = (value, indent) => {
   if (!_.isObject(value)) {
     return value;
   }
@@ -45,7 +45,7 @@ const formatValue = (value, indent) => {
 
   const result = entries.map(([key, innerValue]) => {
     if (_.isObject(innerValue)) {
-      return `${space}${key}: ${formatValue(innerValue, indent + baseIndent)}`;
+      return `${space}${key}: ${formateValue(innerValue, indent + baseIndent)}`;
     }
 
     return `${space}${key}: ${innerValue}`;
@@ -54,7 +54,7 @@ const formatValue = (value, indent) => {
   return `{\n${result}\n${spaceForCloseBracket}}`;
 };
 
-export default function stylish(astTree) {
+export default function formateToStylish(astTree) {
   const inner = (tree, indent = 0) => {
     const sorteredTree = sortTree(tree);
 
@@ -70,9 +70,9 @@ export default function stylish(astTree) {
         case 'added':
         case 'removed':
         case 'unmodifined':
-          return `${space}${typeMark[type]} ${key}: ${formatValue(value, indent)}`;
+          return `${space}${typeMark[type]} ${key}: ${formateValue(value, indent)}`;
         case 'updated':
-          return `${space}${typeMark.removed} ${key}: ${formatValue(oldValue, indent)}\n${space}${typeMark.added} ${key}: ${formatValue(newValue, indent)}`;
+          return `${space}${typeMark.removed} ${key}: ${formateValue(oldValue, indent)}\n${space}${typeMark.added} ${key}: ${formateValue(newValue, indent)}`;
         case '[complex value]':
           return `${space}${typeMark.unmodifined} ${key}: ${inner(children, indent + baseIndent)}`;
         default:
