@@ -21,10 +21,10 @@
 
 <a href="https://asciinema.org/a/uXAtGLDhGIwr1rmOKpTpM9r9K" target="_blank"><img src="https://asciinema.org/a/uXAtGLDhGIwr1rmOKpTpM9r9K.svg" width=250/></a>
   
-### plain:
+### plain
 
 <a href="https://asciinema.org/a/iWHOgxt8oOSRIouQxESPwHh4h" target="_blank"><img src="https://asciinema.org/a/iWHOgxt8oOSRIouQxESPwHh4h.svg" width=250/></a>
 
-### json:
+### json
 
 <a href="https://asciinema.org/a/GaM4BIjnHIKq9u2xmpXMbJBVX" target="_blank"><img src="https://asciinema.org/a/GaM4BIjnHIKq9u2xmpXMbJBVX.svg" width=250/></a>
