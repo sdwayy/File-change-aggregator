@@ -1,55 +1,45 @@
 import _ from 'lodash';
 
 const formatValue = (value) => {
-  const isObject = _.isObject(value);
-  const isString = typeof value === 'string';
-
-  if (isObject) {
+  if (_.isObject(value)) {
     return '[complex value]';
   }
 
-  if (isString) {
+  if (typeof value === 'string') {
     return `'${value}'`;
   }
 
   return value;
 };
 
-const formatterByType = {
-  added: ({ key, value }, prefix) => {
-    const formatedValue = formatValue(value);
-
-    return `Property '${prefix}${key}' was added with value: ${formatedValue}`;
-  },
-
-  removed: ({ key }, prefix) => `Property '${prefix}${key}' was removed`,
-
-  updated: ({ key, oldValue, newValue }, prefix) => {
-    const formatedOldValue = formatValue(oldValue);
-    const formatedNewValue = formatValue(newValue);
-
-    return `Property '${prefix}${key}' was updated. From ${formatedOldValue} to ${formatedNewValue}`;
-  },
-};
-
 export default function plain(tree) {
   const diffs = [];
 
   const inner = (node, prefix = '') => {
-    const { key, type } = node;
+    const {
+      key, type, value, oldValue, newValue, children,
+    } = node;
+
     const newPrefix = prefix ? `${prefix}.` : '';
 
-    if (!_.has(formatterByType, type) && type !== '[complex value]') {
-      return '';
+    switch (type) {
+      case 'added':
+        diffs.push(`Property '${newPrefix}${key}' was added with value: ${formatValue(value)}`);
+        break;
+      case 'removed':
+        diffs.push(`Property '${newPrefix}${key}' was removed`);
+        break;
+      case 'updated':
+        diffs.push(`Property '${newPrefix}${key}' was updated. From ${formatValue(oldValue)} to ${formatValue(newValue)}`);
+        break;
+      case '[complex value]':
+        children.forEach((child) => inner(child, `${newPrefix}${key}`));
+        break;
+      case 'unmodifined':
+        break;
+      default:
+        throw new Error('Unknown node type');
     }
-
-    if (type === '[complex value]') {
-      const { children } = node;
-
-      return children.forEach((child) => inner(child, `${newPrefix}${key}`));
-    }
-
-    return diffs.push(formatterByType[type](node, newPrefix));
   };
 
   tree.forEach((node) => inner(node));
