@@ -1,16 +1,16 @@
-import formateToJson from './json.js';
+import jsonFormatter from './json.js';
 import stylishFormatter from './stylish.js';
 import plainFormatter from './plain.js';
 
-export default function getFormatter(format) {
+export default function getFormatter(format = 'stylish') {
   const formatter = {
     plain: plainFormatter,
-    json: formateToJson,
+    json: jsonFormatter,
     stylish: stylishFormatter,
   };
 
-  if (!format) {
-    return formatter.stylish;
+  if (!formatter[format]) {
+    throw new Error('Unknown format');
   }
 
   return formatter[format];

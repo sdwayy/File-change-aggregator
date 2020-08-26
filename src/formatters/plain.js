@@ -32,7 +32,7 @@ export default function formateToPlain(tree) {
       case 'updated':
         diffs.push(`Property '${newPrefix}${key}' was updated. From ${formateValue(oldValue)} to ${formateValue(newValue)}`);
         break;
-      case '[complex value]':
+      case 'nested':
         children.forEach((child) => inner(child, `${newPrefix}${key}`));
         break;
       case 'unmodifined':

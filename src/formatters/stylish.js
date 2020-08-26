@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-const baseIndent = 4;
+const baseIndent = 2;
 const indentForTypes = 2;
 
 const typeMark = {
@@ -28,6 +28,7 @@ const getSpace = (indent) => {
   if (indent < 1) {
     return '';
   }
+
   return ' '.repeat(indent);
 };
 
@@ -36,16 +37,14 @@ const formateValue = (value, indent) => {
     return value;
   }
 
-  const space = indent === 0
-    ? getSpace(baseIndent + indentForTypes) : getSpace(indent + baseIndent + indentForTypes);
-
-  const spaceForCloseBracket = getSpace(indent + baseIndent - indentForTypes);
+  const space = getSpace(indent + baseIndent + indentForTypes * 2);
+  const spaceForCloseBracket = getSpace(indent + baseIndent);
 
   const entries = Object.entries(value);
 
   const result = entries.map(([key, innerValue]) => {
     if (_.isObject(innerValue)) {
-      return `${space}${key}: ${formateValue(innerValue, indent + baseIndent)}`;
+      return `${space}${key}: ${formateValue(innerValue, indent + baseIndent + indentForTypes)}`;
     }
 
     return `${space}${key}: ${innerValue}`;
@@ -55,7 +54,7 @@ const formateValue = (value, indent) => {
 };
 
 export default function formateToStylish(astTree) {
-  const inner = (tree, indent = 0) => {
+  const inner = (tree, indent = baseIndent) => {
     const sorteredTree = sortTree(tree);
 
     const space = getSpace(indent);
@@ -73,8 +72,8 @@ export default function formateToStylish(astTree) {
           return `${space}${typeMark[type]} ${key}: ${formateValue(value, indent)}`;
         case 'updated':
           return `${space}${typeMark.removed} ${key}: ${formateValue(oldValue, indent)}\n${space}${typeMark.added} ${key}: ${formateValue(newValue, indent)}`;
-        case '[complex value]':
-          return `${space}${typeMark.unmodifined} ${key}: ${inner(children, indent + baseIndent)}`;
+        case 'nested':
+          return `${space}${typeMark.unmodifined} ${key}: ${inner(children, indent + baseIndent + indentForTypes)}`;
         default:
           throw new Error('unknown type');
       }
