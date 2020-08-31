@@ -13,48 +13,31 @@ const formateValue = (value) => {
 };
 
 export default function formateToPlain(tree) {
-  const diffs = [];
-
   const inner = (node, prefix = '') => {
     const {
-      key, type, value, oldValue, newValue, children,
+      key, type, value, children,
     } = node;
 
     const newPrefix = prefix ? `${prefix}.` : '';
 
     switch (type) {
       case 'added':
-        diffs.push(`Property '${newPrefix}${key}' was added with value: ${formateValue(value)}`);
-        break;
+        return `Property '${newPrefix}${key}' was added with value: ${formateValue(value)}`;
       case 'removed':
-        diffs.push(`Property '${newPrefix}${key}' was removed`);
-        break;
+        return `Property '${newPrefix}${key}' was removed`;
       case 'updated':
-        diffs.push(`Property '${newPrefix}${key}' was updated. From ${formateValue(oldValue)} to ${formateValue(newValue)}`);
-        break;
+        return `Property '${newPrefix}${key}' was updated. From ${formateValue(value.oldValue)} to ${formateValue(value.newValue)}`;
       case 'nested':
-        children.forEach((child) => inner(child, `${newPrefix}${key}`));
-        break;
-      case 'unmodifined':
-        break;
+        return children.flatMap((child) => inner(child, `${newPrefix}${key}`));
       default:
-        throw new Error('Unknown node type');
+        return [];
     }
   };
 
-  tree.forEach((node) => inner(node));
+  const result = tree
+    .flatMap((node) => inner(node))
+    .sort()
+    .join('\n');
 
-  diffs.sort((a, b) => {
-    if (a > b) {
-      return 1;
-    }
-
-    if (a < b) {
-      return -1;
-    }
-
-    return 0;
-  });
-
-  return diffs.join('\n');
+  return result;
 }

@@ -1,39 +1,52 @@
+import fs from 'fs';
+import path from 'path';
 import { test } from '@jest/globals';
-import { genDiff } from '../src/index.js';
-import readFile from '../src/util.js';
+import genDiff from '../src/index.js';
 
-const paths = [
+const filesNames = [
   [
-    '../__fixtures__/before.json',
-    '../__fixtures__/after.ini',
+    'before.json',
+    'after.ini',
   ],
   [
-    '../__fixtures__/before.yml',
-    '../__fixtures__/after.json',
+    'before.yml',
+    'after.json',
   ],
   [
-    '../__fixtures__/before.ini',
-    '../__fixtures__/after.yml',
+    'before.ini',
+    'after.yml',
   ],
 ];
 
-test.each(paths)('genDiff -f stylish', (firstFilePath, secondFilePath) => {
-  const expectedValue = genDiff(firstFilePath, secondFilePath);
-  const toEqualValue = readFile('../__fixtures__/stylishDiff.txt');
+const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8');
+const getFixturePath = (fileName) => path.join('__fixtures__', fileName);
+
+test.each(filesNames)('genDiff for %s and %s with stylish formatter', (firstFileName, secondFileName) => {
+  const firstFixturePath = getFixturePath(firstFileName);
+  const secondFixturePath = getFixturePath(secondFileName);
+
+  const expectedValue = genDiff(firstFixturePath, secondFixturePath);
+  const toEqualValue = readFile('__fixtures__/stylishDiff.txt');
 
   expect(expectedValue).toEqual(toEqualValue);
 });
 
-test.each(paths)('genDiff -f plain', (firstFilePath, secondFilePath) => {
-  const expectedValue = genDiff(firstFilePath, secondFilePath, 'plain');
-  const toEqualValue = readFile('../__fixtures__/plainDiff.txt');
+test.each(filesNames)('genDiff for %s and %s with plain formatter', (firstFileName, secondFileName) => {
+  const firstFixturePath = getFixturePath(firstFileName);
+  const secondFixturePath = getFixturePath(secondFileName);
+
+  const expectedValue = genDiff(firstFixturePath, secondFixturePath, 'plain');
+  const toEqualValue = readFile('__fixtures__/plainDiff.txt');
 
   expect(expectedValue).toEqual(toEqualValue);
 });
 
-test.each(paths)('genDiff -f json', (firstFilePath, secondFilePath) => {
-  const expectedValue = genDiff(firstFilePath, secondFilePath, 'json');
-  const toEqualValue = readFile('../__fixtures__/jsonDiff.txt');
+test.each(filesNames)('genDiff for %s and %s with json formatter', (firstFileName, secondFileName) => {
+  const firstFixturePath = getFixturePath(firstFileName);
+  const secondFixturePath = getFixturePath(secondFileName);
+
+  const expectedValue = genDiff(firstFixturePath, secondFixturePath, 'json');
+  const toEqualValue = readFile('__fixtures__/jsonDiff.txt');
 
   expect(expectedValue).toEqual(toEqualValue);
 });

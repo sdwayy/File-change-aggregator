@@ -10,7 +10,7 @@ export default function getFormatter(format = 'stylish') {
   };
 
   if (!formatter[format]) {
-    throw new Error('Unknown format');
+    throw new Error(`Unknown format: ${format}`);
   }
 
   return formatter[format];

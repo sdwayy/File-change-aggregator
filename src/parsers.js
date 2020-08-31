@@ -3,45 +3,42 @@ import _ from 'lodash';
 import yaml from 'js-yaml';
 import ini from 'ini';
 
-export default function parseFileData(fileData, fileExtanstion = '.json') {
-  const parser = {
-    '.ini': function parseIniFile() {
-      const parsedData = ini.parse(fileData);
+const mapParser = {
+  ini: (fileContent) => {
+    const parsedData = ini.parse(fileContent);
 
-      const getFormatedData = (data) => {
-        const result = {};
-        const entries = Object.entries(data);
+    const getFormatedData = (data) => {
+      const result = {};
+      const entries = Object.entries(data);
 
-        entries.forEach(([key, value]) => {
-          if (_.isObject(value)) {
-            result[key] = getFormatedData(value);
+      entries.forEach(([key, value]) => {
+        if (_.isObject(value)) {
+          result[key] = getFormatedData(value);
 
-            return;
-          }
+          return;
+        }
 
-          const parsedValue = parseInt(value, 10) ? parseInt(value, 10) : value;
+        const parsedValue = _.isString(value) && Number(value)
+          ? Number(value) : value;
 
-          result[key] = parsedValue;
-        });
+        result[key] = parsedValue;
+      });
 
-        return result;
-      };
+      return result;
+    };
 
-      return getFormatedData(parsedData);
-    },
+    return getFormatedData(parsedData);
+  },
 
-    '.yml': function parseYamlFile() {
-      return yaml.safeLoad(fileData);
-    },
+  yml: (fileContent) => yaml.safeLoad(fileContent),
 
-    '.json': function parseJsonFile() {
-      return JSON.parse(fileData);
-    },
-  };
+  json: (fileContent) => JSON.parse(fileContent),
+};
 
-  if (!parser[fileExtanstion]) {
-    throw new Error(`${fileExtanstion} is not supported`);
+export default function parse(fileContent, format) {
+  if (!mapParser[format]) {
+    throw new Error(`This format is not supported: ${format}`);
   }
 
-  return parser[fileExtanstion]();
+  return mapParser[format](fileContent);
 }

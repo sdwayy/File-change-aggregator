@@ -3,12 +3,6 @@ import _ from 'lodash';
 const baseIndent = 2;
 const indentForTypes = 2;
 
-const typeMark = {
-  added: '+',
-  removed: '-',
-  unmodifined: ' ',
-};
-
 const sortTree = (tree) => tree.sort((a, b) => {
   const firstKey = a.key;
   const secondKey = b.key;
@@ -50,7 +44,7 @@ const formateValue = (value, indent) => {
     return `${space}${key}: ${innerValue}`;
   }).join('\n');
 
-  return `{\n${result}\n${spaceForCloseBracket}}`;
+  return ['{', result, `${spaceForCloseBracket}}`].join('\n');
 };
 
 export default function formateToStylish(astTree) {
@@ -60,26 +54,31 @@ export default function formateToStylish(astTree) {
     const space = getSpace(indent);
     const spaceForCloseBracket = getSpace(indent - indentForTypes);
 
-    const diffList = sorteredTree.map((node) => {
+    const diff = sorteredTree.map((node) => {
       const {
-        key, value, type, oldValue, newValue, children,
+        key, value, type, children,
       } = node;
 
       switch (type) {
         case 'added':
+          return `${space}+ ${key}: ${formateValue(value, indent)}`;
         case 'removed':
+          return `${space}- ${key}: ${formateValue(value, indent)}`;
         case 'unmodifined':
-          return `${space}${typeMark[type]} ${key}: ${formateValue(value, indent)}`;
+          return `${space}  ${key}: ${formateValue(value, indent)}`;
         case 'updated':
-          return `${space}${typeMark.removed} ${key}: ${formateValue(oldValue, indent)}\n${space}${typeMark.added} ${key}: ${formateValue(newValue, indent)}`;
+          return [
+            `${space}- ${key}: ${formateValue(value.oldValue, indent)}`,
+            `${space}+ ${key}: ${formateValue(value.newValue, indent)}`,
+          ].join('\n');
         case 'nested':
-          return `${space}${typeMark.unmodifined} ${key}: ${inner(children, indent + baseIndent + indentForTypes)}`;
+          return `${space}  ${key}: ${inner(children, indent + baseIndent + indentForTypes)}`;
         default:
-          throw new Error('unknown type');
+          throw new Error(`Unknown type: ${type}`);
       }
-    });
+    }).join('\n');
 
-    return `{\n${diffList.join('\n')}\n${spaceForCloseBracket}}`;
+    return ['{', diff, `${spaceForCloseBracket}}`].join('\n');
   };
 
   return inner(astTree);
