@@ -3,21 +3,6 @@ import _ from 'lodash';
 const baseIndent = 2;
 const indentForTypes = 2;
 
-const sortTree = (tree) => tree.sort((a, b) => {
-  const firstKey = a.key;
-  const secondKey = b.key;
-
-  if (firstKey > secondKey) {
-    return 1;
-  }
-
-  if (firstKey < secondKey) {
-    return -1;
-  }
-
-  return 0;
-});
-
 const getSpace = (indent) => {
   if (indent < 1) {
     return '';
@@ -48,13 +33,11 @@ const formateValue = (value, indent) => {
 };
 
 export default function formateToStylish(astTree) {
-  const inner = (tree, indent = baseIndent) => {
-    const sorteredTree = sortTree(tree);
-
+  const iter = (tree, indent = baseIndent) => {
     const space = getSpace(indent);
     const spaceForCloseBracket = getSpace(indent - indentForTypes);
 
-    const diff = sorteredTree.map((node) => {
+    const diff = tree.map((node) => {
       const {
         key, value, type, children,
       } = node;
@@ -72,7 +55,7 @@ export default function formateToStylish(astTree) {
             `${space}+ ${key}: ${formateValue(value.newValue, indent)}`,
           ].join('\n');
         case 'nested':
-          return `${space}  ${key}: ${inner(children, indent + baseIndent + indentForTypes)}`;
+          return `${space}  ${key}: ${iter(children, indent + baseIndent + indentForTypes)}`;
         default:
           throw new Error(`Unknown type: ${type}`);
       }
@@ -81,5 +64,5 @@ export default function formateToStylish(astTree) {
     return ['{', diff, `${spaceForCloseBracket}}`].join('\n');
   };
 
-  return inner(astTree);
+  return iter(astTree);
 }

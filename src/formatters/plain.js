@@ -13,31 +13,27 @@ const formateValue = (value) => {
 };
 
 export default function formateToPlain(tree) {
-  const inner = (node, prefix = '') => {
+  const iter = (nodesList, currentPath = []) => nodesList.flatMap((node) => {
     const {
       key, type, value, children,
     } = node;
 
-    const newPrefix = prefix ? `${prefix}.` : '';
+    const nodePath = currentPath.length > 0
+      ? `${currentPath.join('.')}.${key}` : key;
 
     switch (type) {
       case 'added':
-        return `Property '${newPrefix}${key}' was added with value: ${formateValue(value)}`;
+        return `Property '${nodePath}' was added with value: ${formateValue(value)}`;
       case 'removed':
-        return `Property '${newPrefix}${key}' was removed`;
+        return `Property '${nodePath}' was removed`;
       case 'updated':
-        return `Property '${newPrefix}${key}' was updated. From ${formateValue(value.oldValue)} to ${formateValue(value.newValue)}`;
+        return `Property '${nodePath}' was updated. From ${formateValue(value.oldValue)} to ${formateValue(value.newValue)}`;
       case 'nested':
-        return children.flatMap((child) => inner(child, `${newPrefix}${key}`));
+        return iter(children, [...currentPath, key]);
       default:
         return [];
     }
-  };
+  });
 
-  const result = tree
-    .flatMap((node) => inner(node))
-    .sort()
-    .join('\n');
-
-  return result;
+  return iter(tree).join('\n');
 }

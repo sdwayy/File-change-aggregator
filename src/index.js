@@ -5,19 +5,19 @@ import parse from './parsers.js';
 import getFormatter from './formatters/index.js';
 import createTree from './tree.js';
 
-function getFileData(filePath) {
+const getFileData = (filePath) => {
   const type = path.extname(filePath).replace('.', '');
   const content = fs.readFileSync(filePath, 'utf-8');
 
   return parse(content, type);
-}
+};
 
-export default function genDiff(firstFilePath, secondFilePath, format) {
+export default function genDiff(firstFilePath, secondFilePath, type) {
   const firstFileData = getFileData(firstFilePath);
   const secondFileData = getFileData(secondFilePath);
 
   const tree = createTree(firstFileData, secondFileData);
-  const formatter = getFormatter(format);
+  const format = getFormatter(type);
 
-  return formatter(tree);
+  return format(tree);
 }

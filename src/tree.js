@@ -1,28 +1,26 @@
 import _ from 'lodash';
 
-function createNode(key, type, value, optionalParameters) {
-  return {
-    key,
-    type,
-    value,
-    ...optionalParameters,
-  };
-}
+const createNode = (key, type, value, optionalParameters) => ({
+  key,
+  type,
+  value,
+  ...optionalParameters,
+});
 
 export default function createTree(firstData, secondData) {
   const keysInFirstData = Object.keys(firstData);
   const keysInSecondData = Object.keys(secondData);
   const uniqKeys = _.union(keysInFirstData, keysInSecondData);
 
-  return uniqKeys.map((key) => {
+  const tree = uniqKeys.map((key) => {
     const firstValue = firstData[key];
     const secondValue = secondData[key];
 
-    if (_.has(firstData, key) && !_.has(secondData, key)) {
+    if (!_.has(secondData, key)) {
       return createNode(key, 'removed', firstValue);
     }
 
-    if (!_.has(firstData, key) && _.has(secondData, key)) {
+    if (!_.has(firstData, key)) {
       return createNode(key, 'added', secondValue);
     }
 
@@ -35,5 +33,20 @@ export default function createTree(firstData, secondData) {
     }
 
     return createNode(key, 'unmodifined', firstValue);
+  });
+
+  return tree.sort((a, b) => {
+    const firstKey = a.key;
+    const secondKey = b.key;
+
+    if (firstKey > secondKey) {
+      return 1;
+    }
+
+    if (firstKey < secondKey) {
+      return -1;
+    }
+
+    return 0;
   });
 }

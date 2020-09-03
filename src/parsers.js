@@ -4,8 +4,8 @@ import yaml from 'js-yaml';
 import ini from 'ini';
 
 const mapParser = {
-  ini: (fileContent) => {
-    const parsedData = ini.parse(fileContent);
+  ini: (content) => {
+    const parsedData = ini.parse(content);
 
     const getFormatedData = (data) => {
       const result = {};
@@ -30,15 +30,15 @@ const mapParser = {
     return getFormatedData(parsedData);
   },
 
-  yml: (fileContent) => yaml.safeLoad(fileContent),
+  yml: (content) => yaml.safeLoad(content),
 
-  json: (fileContent) => JSON.parse(fileContent),
+  json: (content) => JSON.parse(content),
 };
 
-export default function parse(fileContent, format) {
+export default function parse(content, format) {
   if (!mapParser[format]) {
     throw new Error(`This format is not supported: ${format}`);
   }
 
-  return mapParser[format](fileContent);
+  return mapParser[format](content);
 }
