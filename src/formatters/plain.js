@@ -18,18 +18,18 @@ export default function formateToPlain(tree) {
       key, type, value, children,
     } = node;
 
-    const nodePath = currentPath.length > 0
-      ? `${currentPath.join('.')}.${key}` : key;
+    const nodePath = [...currentPath, key];
+    const propertyName = `'${nodePath.join('.')}'`;
 
     switch (type) {
       case 'added':
-        return `Property '${nodePath}' was added with value: ${formateValue(value)}`;
+        return `Property ${propertyName} was added with value: ${formateValue(value)}`;
       case 'removed':
-        return `Property '${nodePath}' was removed`;
+        return `Property ${propertyName} was removed`;
       case 'updated':
-        return `Property '${nodePath}' was updated. From ${formateValue(value.oldValue)} to ${formateValue(value.newValue)}`;
+        return `Property ${propertyName} was updated. From ${formateValue(value.oldValue)} to ${formateValue(value.newValue)}`;
       case 'nested':
-        return iter(children, [...currentPath, key]);
+        return iter(children, nodePath);
       default:
         return [];
     }

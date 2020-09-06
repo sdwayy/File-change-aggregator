@@ -13,16 +13,16 @@ export default function createTree(firstData, secondData) {
   const uniqKeys = _.union(keysInFirstData, keysInSecondData);
 
   const tree = uniqKeys.map((key) => {
-    const firstValue = firstData[key];
-    const secondValue = secondData[key];
-
     if (!_.has(secondData, key)) {
-      return createNode(key, 'removed', firstValue);
+      return createNode(key, 'removed', firstData[key]);
     }
 
     if (!_.has(firstData, key)) {
-      return createNode(key, 'added', secondValue);
+      return createNode(key, 'added', secondData[key]);
     }
+
+    const firstValue = firstData[key];
+    const secondValue = secondData[key];
 
     if (_.isObject(firstValue) && _.isObject(secondValue)) {
       return createNode(key, 'nested', null, { children: createTree(firstValue, secondValue) });
