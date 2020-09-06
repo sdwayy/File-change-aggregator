@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import _ from 'lodash';
 import yaml from 'js-yaml';
 import ini from 'ini';
